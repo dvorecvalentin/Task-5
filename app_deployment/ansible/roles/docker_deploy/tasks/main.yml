@@ -1,0 +1,32 @@
+
+---
+- name: Установить Docker
+  ansible.builtin.yum:
+    name: docker
+    state: present
+
+- name: Запустить и включить Docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Скопировать Dockerfile
+  ansible.builtin.copy:
+    src: "{{ dockerfile_src }}"
+    dest: "/tmp/Dockerfile"
+
+- name: Построить Docker-образ
+  community.docker.docker_image:
+    build:
+      path: /tmp
+    name: "{{ image_name }}"
+    tag: "{{ image_tag }}"
+
+- name: Запустить контейнер
+  community.docker.docker_container:
+    name: "{{ container_name }}"
+    image: "{{ image_name }}:{{ image_tag }}"
+    state: started
+    ports:
+      - "80:80"
